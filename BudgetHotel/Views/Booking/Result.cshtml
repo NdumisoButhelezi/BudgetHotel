@@ -1,0 +1,91 @@
+﻿@model BudgetHotel.Models.GuestBooking
+
+@{
+    ViewBag.Title = "Booking Summary";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-lg p-4 booking-card">
+        <h2 class="text-center mb-4"><i class="fas fa-file-invoice-dollar text-success"></i> Booking Summary</h2>
+
+        <ul class="list-group">
+            <li class="list-group-item"><i class="fas fa-users"></i> <strong>Number of Guests:</strong> @Model.NumberOfGuests</li>
+            <li class="list-group-item"><i class="fas fa-moon"></i> <strong>Number of Nights:</strong> @Model.NumberOfNights</li>
+            <li class="list-group-item"><i class="fas fa-money-bill-wave"></i> <strong>Price Per Person per Night:</strong> R @Model.PricePerPersonPerNight</li>
+        </ul>
+
+        <hr>
+
+        <ul class="list-group">
+            <li class="list-group-item text-success"><i class="fas fa-check-circle"></i> <strong>Total After VAT:</strong> R @Model.CalculateTotalAfterVAT()</li>
+            <li class="list-group-item text-warning"><i class="fas fa-hand-holding-usd"></i> <strong>Total Before VAT:</strong> R @Model.CalculateTotalBeforeVAT()</li>
+            <li class="list-group-item text-danger"><i class="fas fa-percent"></i> <strong>VAT (15%):</strong> R @Model.CalculateVAT()</li>
+        </ul>
+
+        <div class="text-center mt-4">
+            @Html.ActionLink("Go Back", "Index", "Booking", new { }, new { @class = "btn btn-secondary hover-btn" })
+        </div>
+    </div>
+
+    <!-- Line Graph -->
+    <div class="card mt-4 p-4">
+        <h3 class="text-center"><i class="fas fa-chart-line"></i> Booking Price Breakdown</h3>
+        <canvas id="bookingChart"></canvas>
+    </div>
+</div>
+
+<!-- Including Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('bookingChart').getContext('2d');
+    
+    console.log('Canvas found:', !!ctx);
+    
+    var config = {
+        type: 'line',
+        data: {
+            labels: ['Number of Guests', 'Number of Nights', 'Price per Person per Night', 'Total After VAT', 'Total Before VAT', 'VAT (15%)'],
+            datasets: [{
+                label: 'Booking Details',
+                data: [
+                    @Model.NumberOfGuests,
+                    @Model.NumberOfNights,
+                    @Model.PricePerPersonPerNight,
+                    @Model.CalculateTotalAfterVAT(),
+                    @Model.CalculateTotalBeforeVAT(),
+                    @Model.CalculateVAT()
+                ],
+                borderColor: 'rgba(0, 123, 255, 1)',
+                backgroundColor: 'rgba(0, 123, 255, 0.2)',
+                borderWidth: 2,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return 'R ' + value.toLocaleString();
+                        }
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(tooltipItem) {
+                            return 'R ' + tooltipItem.raw.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    const bookingChart = new Chart(ctx, config);
+    window.bookingChart = bookingChart;
+});</script>
